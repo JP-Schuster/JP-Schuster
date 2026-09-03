@@ -21,6 +21,26 @@ LANG_COLORS = {
     "Java": "#B07219",
 }
 
+RANK_ORDER = ["C", "B", "A", "AA", "AAA", "S", "SS", "SSS"]
+RANK_COLORS = {
+    "C": "#6e7681",
+    "B": "#8b949e",
+    "A": "#58a6ff",
+    "AA": "#79c0ff",
+    "AAA": "#a5d6ff",
+    "S": "#3fb950",
+    "SS": "#d29922",
+    "SSS": "#f85149",
+}
+
+TROPHY_RULES = {
+    "Commits": [10, 50, 100, 150, 200, 300, 500, 1000],
+    "Pull Requests": [1, 5, 10, 20, 30, 50, 80, 120],
+    "Lines Changed": [1000, 10000, 50000, 100000, 500000, 1000000, 5000000, 10000000],
+    "Repositories": [2, 4, 6, 8, 10, 12, 16, 20],
+    "Languages": [2, 3, 4, 5, 6, 7, 9, 12],
+}
+
 
 def gh(*args):
     env = os.environ.copy()
@@ -71,13 +91,11 @@ def discover_repos_and_languages():
 
 def aggregate(repos):
     totals = {"commits": 0, "additions": 0, "deletions": 0, "by_year": {}}
-    repo_stats = []
+    active_repos = 0
 
     for repo in repos:
         owner, name = repo.split("/", 1)
         repo_commits = 0
-        repo_additions = 0
-        repo_deletions = 0
 
         for author in contributor_stats(owner, name):
             login = (author.get("author") or {}).get("login")
@@ -90,8 +108,6 @@ def aggregate(repos):
                 additions = week.get("a", 0)
                 deletions = week.get("d", 0)
                 repo_commits += commits
-                repo_additions += additions
-                repo_deletions += deletions
                 totals["commits"] += commits
                 totals["additions"] += additions
                 totals["deletions"] += deletions
@@ -102,19 +118,10 @@ def aggregate(repos):
             break
 
         if repo_commits > 0:
-            repo_stats.append(
-                {
-                    "repo": repo,
-                    "short_name": name if len(name) <= 28 else name[:25] + "...",
-                    "owner": owner,
-                    "commits": repo_commits,
-                    "additions": repo_additions,
-                    "deletions": repo_deletions,
-                }
-            )
+            active_repos += 1
 
-    repo_stats.sort(key=lambda item: item["commits"], reverse=True)
-    return totals, repo_stats
+    totals["active_repos"] = active_repos
+    return totals
 
 
 def calendar_stats():
@@ -140,6 +147,42 @@ def fmt(n):
     if n >= 1_000:
         return f"{n / 1_000:.1f}k"
     return str(n)
+
+
+def rank_for(value, thresholds):
+    rank = "C"
+    for idx, threshold in enumerate(thresholds):
+        if value >= threshold:
+            rank = RANK_ORDER[idx]
+    return rank
+
+
+def build_trophy_data(totals, calendar, language_count):
+    lines_changed = totals["additions"] + totals["deletions"]
+    metrics = {
+        "Commits": totals["commits"],
+        "Pull Requests": calendar["totalPullRequestContributions"],
+        "Lines Changed": lines_changed,
+        "Repositories": totals["active_repos"],
+        "Languages": language_count,
+    }
+    trophies = []
+    for title, value in metrics.items():
+        thresholds = TROPHY_RULES[title]
+        rank = rank_for(value, thresholds)
+        max_threshold = thresholds[-1]
+        progress = min(100, round(value / max_threshold * 100)) if max_threshold else 0
+        trophies.append(
+            {
+                "title": title,
+                "value": value,
+                "display": fmt(value) if title == "Lines Changed" else f"{value:,}",
+                "rank": rank,
+                "progress": progress,
+                "color": RANK_COLORS[rank],
+            }
+        )
+    return trophies
 
 
 def write(path, content):
@@ -215,32 +258,37 @@ def build_langs_svg(ranked):
     return "\n".join(parts)
 
 
-def build_repos_svg(repo_stats):
-    top = repo_stats[:5]
-    max_commits = max((item["commits"] for item in top), default=1) or 1
+def build_trophies_svg(trophies):
     width, height = 800, 195
+    card_w, gap = 145, 12
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">',
         f'<rect width="{width}" height="{height}" rx="10" fill="#1a1b27"/>',
-        '<text x="24" y="28" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Top Repositories</text>',
-        '<text x="24" y="46" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">repos com mais commits · pessoal + organizations</text>',
+        '<text x="24" y="28" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">GitHub Trophies</text>',
+        '<text x="24" y="46" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">ranking SSS · SS · S · AAA · AA · A · B · C</text>',
     ]
 
-    y = 72
-    for item in top:
-        bar_max = 420
-        bar_w = max(12, round(bar_max * item["commits"] / max_commits))
+    x = 24
+    y = 58
+    for trophy in trophies:
+        color = trophy["color"]
+        parts.append(f'<rect x="{x}" y="{y}" width="{card_w}" height="118" rx="8" fill="#24283b" stroke="#3b4261"/>')
         parts.append(
-            f'<text x="24" y="{y}" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">{item["short_name"]}</text>'
+            f'<text x="{x + 12}" y="{y + 22}" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">{trophy["title"]}</text>'
         )
         parts.append(
-            f'<text x="760" y="{y}" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12" text-anchor="end">{item["commits"]} commits</text>'
+            f'<text x="{x + card_w - 12}" y="{y + 58}" fill="{color}" font-family="Segoe UI, Ubuntu, sans-serif" font-size="28" font-weight="700" text-anchor="end">{trophy["rank"]}</text>'
         )
-        parts.append(f'<rect x="220" y="{y - 11}" width="{bar_w}" height="10" rx="3" fill="#7aa2f7"/>')
         parts.append(
-            f'<text x="220" y="{y + 10}" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="10">{item["owner"]} · +{fmt(item["additions"])} / -{fmt(item["deletions"])}</text>'
+            f'<text x="{x + 12}" y="{y + 58}" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="14">{trophy["display"]}</text>'
         )
-        y += 28
+        parts.append(f'<rect x="{x + 12}" y="{y + 72}" width="{card_w - 24}" height="8" rx="4" fill="#1a1b27"/>')
+        bar_w = max(8, round((card_w - 24) * trophy["progress"] / 100))
+        parts.append(f'<rect x="{x + 12}" y="{y + 72}" width="{bar_w}" height="8" rx="4" fill="{color}"/>')
+        parts.append(
+            f'<text x="{x + 12}" y="{y + 98}" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="10">progresso {trophy["progress"]}%</text>'
+        )
+        x += card_w + gap
 
     parts.append("</svg>")
     return "\n".join(parts)
@@ -248,24 +296,15 @@ def build_repos_svg(repo_stats):
 
 def main():
     repos, ranked = discover_repos_and_languages()
-    totals, repo_stats = aggregate(repos)
+    totals = aggregate(repos)
     calendar = calendar_stats()
+    trophies = build_trophy_data(totals, calendar, len(ranked))
 
     write(f"{ASSETS_DIR}/github-stats.svg", build_stats_svg(totals, calendar, len(repos)))
     write(f"{ASSETS_DIR}/github-langs.svg", build_langs_svg(ranked))
-    write(f"{ASSETS_DIR}/github-repos.svg", build_repos_svg(repo_stats))
+    write(f"{ASSETS_DIR}/github-trophies.svg", build_trophies_svg(trophies))
 
-    print(
-        json.dumps(
-            {
-                "repos": len(repos),
-                "commits": totals["commits"],
-                "top_repos": repo_stats[:5],
-                "languages": [(name, info["size"]) for name, info in ranked[:6]],
-            },
-            indent=2,
-        )
-    )
+    print(json.dumps({"commits": totals["commits"], "trophies": trophies}, indent=2))
 
 
 if __name__ == "__main__":

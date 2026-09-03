@@ -39,7 +39,7 @@ jobs:
         run: |
           git config user.name "JP-Schuster"
           git config user.email "domianduakoc@gmail.com"
-          git add assets/github-stats.svg assets/github-langs.svg assets/github-repos.svg
+          git add assets/github-stats.svg assets/github-langs.svg assets/github-trophies.svg
           git diff --staged --quiet && exit 0
           git commit -m "Atualiza GitHub stats com contribuicoes em organizations."
           git push

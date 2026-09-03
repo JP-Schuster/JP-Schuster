@@ -36,7 +36,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-repos.svg" alt="Top repositories" />
+  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-trophies.svg" alt="GitHub trophies ranking" />
 </p>
 
 ---
