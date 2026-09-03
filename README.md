@@ -36,8 +36,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/chahyunwoo/github-tier">
-    <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-tier.svg" height="195" alt="GitHub Tier ranking" />
+  <a href="https://github.com/JP-Schuster/github-tier">
+    <img src="https://github-tier-deploy.vercel.app/api/tier?user=JP-Schuster&theme=tokyonight" height="195" alt="GitHub Tier ranking" />
   </a>
 </p>
 
