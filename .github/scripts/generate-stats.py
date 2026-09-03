@@ -2,9 +2,8 @@
 import json
 import os
 import subprocess
-from calendar import month_abbr
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 USERNAME = os.environ.get("GITHUB_USERNAME", "JP-Schuster")
 TOKEN = os.environ.get("GH_PAT") or os.environ.get("GITHUB_TOKEN")
@@ -20,9 +19,6 @@ LANG_COLORS = {
     "Shell": "#89E051",
     "Dockerfile": "#384D54",
     "Java": "#B07219",
-    "C": "#555555",
-    "C++": "#F34B7D",
-    "Rust": "#DEA584",
 }
 
 
@@ -74,33 +70,51 @@ def discover_repos_and_languages():
 
 
 def aggregate(repos):
-    totals = {"commits": 0, "additions": 0, "deletions": 0, "by_year": {}, "weeks": {}}
+    totals = {"commits": 0, "additions": 0, "deletions": 0, "by_year": {}}
+    repo_stats = []
+
     for repo in repos:
         owner, name = repo.split("/", 1)
+        repo_commits = 0
+        repo_additions = 0
+        repo_deletions = 0
+
         for author in contributor_stats(owner, name):
             login = (author.get("author") or {}).get("login")
             if login != USERNAME:
                 continue
             for week in author.get("weeks", []):
                 ts = week.get("w", 0)
-                if not ts:
-                    continue
-                week_date = datetime.fromtimestamp(ts, tz=timezone.utc).date()
-                year = str(week_date.year)
+                year = datetime.fromtimestamp(ts, tz=timezone.utc).year if ts else "unknown"
                 commits = week.get("c", 0)
                 additions = week.get("a", 0)
                 deletions = week.get("d", 0)
+                repo_commits += commits
+                repo_additions += additions
+                repo_deletions += deletions
                 totals["commits"] += commits
                 totals["additions"] += additions
                 totals["deletions"] += deletions
-                bucket = totals["by_year"].setdefault(year, {"commits": 0, "additions": 0, "deletions": 0})
+                bucket = totals["by_year"].setdefault(str(year), {"commits": 0, "additions": 0, "deletions": 0})
                 bucket["commits"] += commits
                 bucket["additions"] += additions
                 bucket["deletions"] += deletions
-                key = week_date.isoformat()
-                totals["weeks"][key] = totals["weeks"].get(key, 0) + commits
             break
-    return totals
+
+        if repo_commits > 0:
+            repo_stats.append(
+                {
+                    "repo": repo,
+                    "short_name": name if len(name) <= 28 else name[:25] + "...",
+                    "owner": owner,
+                    "commits": repo_commits,
+                    "additions": repo_additions,
+                    "deletions": repo_deletions,
+                }
+            )
+
+    repo_stats.sort(key=lambda item: item["commits"], reverse=True)
+    return totals, repo_stats
 
 
 def calendar_stats():
@@ -201,59 +215,32 @@ def build_langs_svg(ranked):
     return "\n".join(parts)
 
 
-def week_series(weeks, count=32):
-    today = datetime.now(timezone.utc).date()
-    monday = today - timedelta(days=today.weekday())
-    series = []
-    for i in range(count - 1, -1, -1):
-        start = monday - timedelta(weeks=i)
-        series.append((start, weeks.get(start.isoformat(), 0)))
-    return series
-
-
-def build_activity_svg(weeks, by_year):
-    series = week_series(weeks, 32)
-    max_count = max((count for _, count in series), default=1) or 1
+def build_repos_svg(repo_stats):
+    top = repo_stats[:5]
+    max_commits = max((item["commits"] for item in top), default=1) or 1
     width, height = 800, 195
-    left, right, top, bottom = 36, 24, 58, 38
-    chart_w = width - left - right
-    chart_h = height - top - bottom
-    gap = 4
-    bar_w = max(8, (chart_w / len(series)) - gap)
-
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">',
         f'<rect width="{width}" height="{height}" rx="10" fill="#1a1b27"/>',
-        '<text x="24" y="28" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Activity Graph</text>',
-        '<text x="24" y="46" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">commits por semana · pessoal + organizations</text>',
+        '<text x="24" y="28" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Top Repositories</text>',
+        '<text x="24" y="46" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">repos com mais commits · pessoal + organizations</text>',
     ]
 
-    last_month = None
-    for idx, (start, count) in enumerate(series):
-        x = left + idx * (bar_w + gap)
-        bar_h = 4 if count == 0 else max(6, round(chart_h * count / max_count))
-        y = top + chart_h - bar_h
-        color = "#3b4261" if count == 0 else "#7aa2f7"
-        if count >= max_count * 0.66:
-            color = "#9ece6a"
-        elif count >= max_count * 0.33:
-            color = "#7aa2f7"
-        elif count > 0:
-            color = "#3d59a1"
-        parts.append(f'<rect x="{x:.1f}" y="{y}" width="{bar_w:.1f}" height="{bar_h}" rx="2" fill="{color}"/>')
-        month = start.month
-        if month != last_month:
-            parts.append(
-                f'<text x="{x:.1f}" y="{height - 14}" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">{month_abbr[month]}</text>'
-            )
-            last_month = month
-
-    legend_x = 520
-    for year, stats in sorted(by_year.items()):
+    y = 72
+    for item in top:
+        bar_max = 420
+        bar_w = max(12, round(bar_max * item["commits"] / max_commits))
         parts.append(
-            f'<text x="{legend_x}" y="28" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">{year}: {stats["commits"]} commits</text>'
+            f'<text x="24" y="{y}" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">{item["short_name"]}</text>'
         )
-        legend_x += 140
+        parts.append(
+            f'<text x="760" y="{y}" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12" text-anchor="end">{item["commits"]} commits</text>'
+        )
+        parts.append(f'<rect x="220" y="{y - 11}" width="{bar_w}" height="10" rx="3" fill="#7aa2f7"/>')
+        parts.append(
+            f'<text x="220" y="{y + 10}" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="10">{item["owner"]} · +{fmt(item["additions"])} / -{fmt(item["deletions"])}</text>'
+        )
+        y += 28
 
     parts.append("</svg>")
     return "\n".join(parts)
@@ -261,24 +248,20 @@ def build_activity_svg(weeks, by_year):
 
 def main():
     repos, ranked = discover_repos_and_languages()
-    totals = aggregate(repos)
+    totals, repo_stats = aggregate(repos)
     calendar = calendar_stats()
 
     write(f"{ASSETS_DIR}/github-stats.svg", build_stats_svg(totals, calendar, len(repos)))
     write(f"{ASSETS_DIR}/github-langs.svg", build_langs_svg(ranked))
-    write(f"{ASSETS_DIR}/github-activity.svg", build_activity_svg(totals["weeks"], totals["by_year"]))
+    write(f"{ASSETS_DIR}/github-repos.svg", build_repos_svg(repo_stats))
 
     print(
         json.dumps(
             {
                 "repos": len(repos),
                 "commits": totals["commits"],
-                "additions": totals["additions"],
-                "deletions": totals["deletions"],
-                "prs": calendar["totalPullRequestContributions"],
-                "issues": calendar["totalIssueContributions"],
-                "languages": [(name, info["size"]) for name, info in ranked[:8]],
-                "by_year": totals["by_year"],
+                "top_repos": repo_stats[:5],
+                "languages": [(name, info["size"]) for name, info in ranked[:6]],
             },
             indent=2,
         )
