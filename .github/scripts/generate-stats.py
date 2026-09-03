@@ -202,6 +202,11 @@ def main():
     write(f"{ASSETS_DIR}/github-stats.svg", build_stats_svg(totals, calendar, len(repos)))
     write(f"{ASSETS_DIR}/github-langs.svg", build_langs_svg(ranked))
 
+    script_dir = os.path.join(os.path.dirname(__file__))
+    tier_script = os.path.join(script_dir, "generate-tier.sh")
+    if os.path.exists(tier_script):
+        subprocess.run(["bash", tier_script], check=False, env=os.environ.copy())
+
     print(
         json.dumps(
             {

@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="450" height="260" viewBox="0 0 450 260" fill="none">
+  <defs>
+    <linearGradient id="tierGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C8961E" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#F0B232" stop-opacity="0.03"/>
+    </linearGradient>
+    <linearGradient id="emblemGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C8961E"/>
+      <stop offset="100%" stop-color="#F0B232"/>
+    </linearGradient>
+    <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#C8961E"/>
+      <stop offset="100%" stop-color="#F0B232"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="avatarClip"><circle cx="24" cy="24" r="22"/></clipPath>
+    <pattern id="bgPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.5" fill="#F0B232" fill-opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <style>
+    * { font-family: 'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes barGrow {
+      from { width: 0; }
+    }
+    .fade { opacity: 0; animation: fadeIn 0.8s ease-in-out forwards; }
+    .slide { opacity: 0; animation: slideIn 0.5s ease-in-out forwards; }
+    .d1 { animation-delay: 0.1s; }
+    .d2 { animation-delay: 0.2s; }
+    .d3 { animation-delay: 0.35s; }
+    .d4 { animation-delay: 0.5s; }
+  </style>
+
+  <!-- Background -->
+  <rect width="450" height="260" rx="4.5" fill="#1A1B27"/>
+  <rect width="450" height="260" rx="4.5" fill="url(#tierGlow)"/>
+  <rect width="450" height="260" rx="4.5" fill="url(#bgPattern)"/>
+  <rect width="450" height="260" rx="4.5" fill="none" stroke="#414868" stroke-width="1" stroke-opacity="0.5"/>
+
+  <!-- Top tier accent line -->
+  <rect x="0" y="0" width="450" height="2" rx="4.5" fill="#F0B232" fill-opacity="0.6"/>
+
+  
+
+  <!-- Avatar -->
+  <g transform="translate(18, 18)" class="fade d1">
+    <image href="data:image/png;base64,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" x="2" y="2" width="44" height="44" clip-path="url(#avatarClip)" preserveAspectRatio="xMidYMid slice"/>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="#F0B232" stroke-width="2" stroke-opacity="0.6"/>
+  </g>
+
+  <!-- User Info -->
+  <g class="fade d2">
+    <text x="80" y="36" font-size="15" font-weight="700" fill="#70A5FD">ItWorksOnMyMachine</text>
+    <text x="80" y="52" font-size="11" fill="#7982A9">@JP-Schuster</text>
+    <text x="80" y="68" font-size="10" font-weight="600" fill="#F0B232">Top 53%</text>
+    <text x="138" y="68" font-size="9" fill="#7982A9" fill-opacity="0.6">+3 to Gold III</text>
+  </g>
+
+  <!-- Tier Emblem -->
+  <g transform="translate(368, 14)" class="fade d2">
+    
+    <defs>
+      <linearGradient id="hexGrad_Gold" x1="0.2" y1="0" x2="0.8" y2="1">
+        <stop offset="0%" stop-color="#C8961E"/>
+        <stop offset="100%" stop-color="#F0B232"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Outer glow ring -->
+    <polygon points="32,-2 66,17 66,55 32,74 -2,55 -2,17"
+      fill="none" stroke="#F0B232" stroke-width="0.5" stroke-opacity="0.15"/>
+
+    <!-- Outer hex -->
+    <polygon points="32,0 64,18 64,54 32,72 0,54 0,18"
+      fill="url(#hexGrad_Gold)" fill-opacity="0.12"
+      stroke="url(#hexGrad_Gold)" stroke-width="1.5"/>
+
+    <!-- Inner hex -->
+    <polygon points="32,6 58,20 58,52 32,66 6,52 6,20"
+      fill="url(#hexGrad_Gold)" fill-opacity="0.06"
+      stroke="url(#hexGrad_Gold)" stroke-width="0.5" stroke-opacity="0.3"/>
+
+    
+    
+      <path d="M30,36 L32,34 L34,36 L32,38 Z" fill="#F0B232" fill-opacity="0.12"/>
+    
+
+    <!-- Tier name -->
+    <text x="32" y="29" text-anchor="middle" dominant-baseline="central"
+      font-size="9" font-weight="800" letter-spacing="0.5" font-family="Segoe UI, Ubuntu, sans-serif"
+      fill="#F0B232">GOLD</text>
+
+    <!-- Division -->
+    <text x="32" y="45" text-anchor="middle" dominant-baseline="central"
+      font-size="13" font-weight="800" font-family="Segoe UI, Ubuntu, sans-serif"
+      fill="#F0B232">IV</text>
+    
+  </g>
+
+  <!-- Tier Stars -->
+  <g transform="translate(368, 92)">
+    <path d="M23,0 L23.8,2 L26,2.2 L24.2,3.6 L24.8,6 L23,4.6 L21.2,6 L21.8,3.6 L20,2.2 L22.2,2 Z"
+    fill="#F0B232" fill-opacity="0.5"/><path d="M32,0 L32.8,2 L35,2.2 L33.2,3.6 L33.8,6 L32,4.6 L30.2,6 L30.8,3.6 L29,2.2 L31.2,2 Z"
+    fill="#F0B232" fill-opacity="0.5"/><path d="M41,0 L41.8,2 L44,2.2 L42.2,3.6 L42.8,6 L41,4.6 L39.2,6 L39.8,3.6 L38,2.2 L40.2,2 Z"
+    fill="#F0B232" fill-opacity="0.5"/>
+  </g>
+
+  <!-- Stat Bars -->
+  <g transform="translate(18, 108)">
+    
+      <g transform="translate(0, 0)" class="fade" style="animation-delay: 0.4s">
+        <svg x="0" y="1" width="14" height="14" viewBox="0 0 16 16" fill="#BB9AF7">
+          <path d="M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Zm-1.43-.75a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/>
+        </svg>
+        <text x="20" y="8" dominant-baseline="central" font-size="11" fill="#C0CAF5">Commits</text>
+        <rect x="88" y="4" width="246" height="8" rx="4" fill="#292E42"/>
+        <rect x="88" y="4" width="125" height="8" rx="4" fill="url(#barGrad)" opacity="0.85"/>
+        <text x="340" y="8" dominant-baseline="central" font-size="10" fill="#7982A9">258</text>
+        <text x="414" y="8" dominant-baseline="central" text-anchor="end" font-size="9" font-weight="700" fill="#BB9AF7">51 <tspan fill="#7982A9" font-weight="400" font-size="7">/ 100</tspan></text>
+      </g>
+    
+      <g transform="translate(0, 26)" class="fade" style="animation-delay: 0.5s">
+        <svg x="0" y="1" width="14" height="14" viewBox="0 0 16 16" fill="#BB9AF7">
+          <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/>
+        </svg>
+        <text x="20" y="8" dominant-baseline="central" font-size="11" fill="#C0CAF5">Stars</text>
+        <rect x="88" y="4" width="246" height="8" rx="4" fill="#292E42"/>
+        <rect x="88" y="4" width="0" height="8" rx="4" fill="url(#barGrad)" opacity="0.85"/>
+        <text x="340" y="8" dominant-baseline="central" font-size="10" fill="#7982A9">0</text>
+        <text x="414" y="8" dominant-baseline="central" text-anchor="end" font-size="9" font-weight="700" fill="#BB9AF7">0 <tspan fill="#7982A9" font-weight="400" font-size="7">/ 100</tspan></text>
+      </g>
+    
+      <g transform="translate(0, 52)" class="fade" style="animation-delay: 0.6000000000000001s">
+        <svg x="0" y="1" width="14" height="14" viewBox="0 0 16 16" fill="#BB9AF7">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z"/>
+        </svg>
+        <text x="20" y="8" dominant-baseline="central" font-size="11" fill="#C0CAF5">PRs</text>
+        <rect x="88" y="4" width="246" height="8" rx="4" fill="#292E42"/>
+        <rect x="88" y="4" width="219" height="8" rx="4" fill="url(#barGrad)" opacity="0.85"/>
+        <text x="340" y="8" dominant-baseline="central" font-size="10" fill="#7982A9">41</text>
+        <text x="414" y="8" dominant-baseline="central" text-anchor="end" font-size="9" font-weight="700" fill="#BB9AF7">89 <tspan fill="#7982A9" font-weight="400" font-size="7">/ 100</tspan></text>
+      </g>
+    
+      <g transform="translate(0, 78)" class="fade" style="animation-delay: 0.7000000000000001s">
+        <svg x="0" y="1" width="14" height="14" viewBox="0 0 16 16" fill="#BB9AF7">
+          <path d="M10.561 8.073a6 6 0 0 1 3.32 5.17.75.75 0 1 1-1.497.076 4.5 4.5 0 0 0-7.37-3.11.75.75 0 0 1-.994-1.124A6 6 0 0 1 8 7.5a6 6 0 0 1 2.561.573ZM8 5.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 1.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/>
+        </svg>
+        <text x="20" y="8" dominant-baseline="central" font-size="11" fill="#C0CAF5">Followers</text>
+        <rect x="88" y="4" width="246" height="8" rx="4" fill="#292E42"/>
+        <rect x="88" y="4" width="98" height="8" rx="4" fill="url(#barGrad)" opacity="0.85"/>
+        <text x="340" y="8" dominant-baseline="central" font-size="10" fill="#7982A9">2</text>
+        <text x="414" y="8" dominant-baseline="central" text-anchor="end" font-size="9" font-weight="700" fill="#BB9AF7">40 <tspan fill="#7982A9" font-weight="400" font-size="7">/ 100</tspan></text>
+      </g>
+    
+      <g transform="translate(0, 104)" class="fade" style="animation-delay: 0.8s">
+        <svg x="0" y="1" width="14" height="14" viewBox="0 0 16 16" fill="#BB9AF7">
+          <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"/>
+        </svg>
+        <text x="20" y="8" dominant-baseline="central" font-size="11" fill="#C0CAF5">Issues</text>
+        <rect x="88" y="4" width="246" height="8" rx="4" fill="#292E42"/>
+        <rect x="88" y="4" width="0" height="8" rx="4" fill="url(#barGrad)" opacity="0.85"/>
+        <text x="340" y="8" dominant-baseline="central" font-size="10" fill="#7982A9">0</text>
+        <text x="414" y="8" dominant-baseline="central" text-anchor="end" font-size="9" font-weight="700" fill="#BB9AF7">0 <tspan fill="#7982A9" font-weight="400" font-size="7">/ 100</tspan></text>
+      </g>
+    
+  </g>
+
+  <!-- Watermark -->
+  <text x="432" y="252" text-anchor="end" font-size="8" fill="#7982A9" fill-opacity="0.4">github-tier.vercel.app</text>
+</svg>
