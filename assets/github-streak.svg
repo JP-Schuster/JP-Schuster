@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="165" viewBox="0 0 420 165" role="img" aria-label="GitHub streak for JP-Schuster">
+  <rect width="420" height="165" rx="10" fill="#1a1b27"/>
+  <text x="24" y="30" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Contribution Streak</text>
+  <text x="24" y="52" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">Semanas ativas · pessoal + organizations</text>
+
+  <text x="40" y="110" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">Current</text>
+  <text x="40" y="138" fill="#9ece6a" font-family="Segoe UI, Ubuntu, sans-serif" font-size="28" font-weight="700">5w</text>
+
+  <text x="170" y="110" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">Longest</text>
+  <text x="170" y="138" fill="#bb9af7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="28" font-weight="700">7w</text>
+
+  <text x="300" y="110" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">Commits</text>
+  <text x="300" y="138" fill="#7dcfff" font-family="Segoe UI, Ubuntu, sans-serif" font-size="28" font-weight="700">258</text>
+</svg>

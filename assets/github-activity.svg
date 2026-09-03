@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="362" height="150" viewBox="0 0 362 150" role="img" aria-label="Activity graph for JP-Schuster">
+<rect width="362" height="150" rx="10" fill="#1a1b27"/>
+<text x="24" y="24" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Activity Graph</text>
+<text x="24" y="40" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">Commits por semana · pessoal + organizations</text>
+<rect x="24" y="48" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="24" y="61" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="24" y="74" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="24" y="87" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="24" y="100" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="24" y="113" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="24" y="126" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="37" y="48" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="37" y="61" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="37" y="74" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="37" y="87" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="37" y="100" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="37" y="113" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="37" y="126" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="50" y="48" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="50" y="61" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="50" y="74" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="50" y="87" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="50" y="100" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="50" y="113" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="50" y="126" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="63" y="48" width="11" height="11" rx="2" fill="#549568"/>
+<rect x="63" y="61" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="63" y="74" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="63" y="87" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="63" y="100" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="63" y="113" width="11" height="11" rx="2" fill="#549568"/>
+<rect x="63" y="126" width="11" height="11" rx="2" fill="#549568"/>
+<rect x="76" y="48" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="76" y="61" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="76" y="74" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="76" y="87" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="76" y="100" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="76" y="113" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="76" y="126" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="89" y="48" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="89" y="61" width="11" height="11" rx="2" fill="#549568"/>
+<rect x="89" y="74" width="11" height="11" rx="2" fill="#1f2335"/>
+<rect x="89" y="87" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="89" y="100" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="89" y="113" width="11" height="11" rx="2" fill="#40695B"/>
+<rect x="89" y="126" width="11" height="11" rx="2" fill="#9ece6a"/>
+<rect x="102" y="48" width="11" height="11" rx="2" fill="#9ece6a"/>
+<text x="24" y="138" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">2025: 3 commits</text>
+<text x="154" y="138" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">2026: 255 commits</text>
+</svg>

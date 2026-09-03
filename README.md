@@ -35,8 +35,8 @@
 </p>
 
 <p align="center">
-  <img src="https://streak-stats.demolab.com/?user=JP-Schuster&theme=tokyonight&hide_border=true" height="165" alt="GitHub streak" />
-  <img src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=JP-Schuster&theme=tokyonight" height="165" alt="Activity graph" />
+  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-streak.svg" height="165" alt="GitHub streak" />
+  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-activity.svg" height="165" alt="Activity graph" />
 </p>
 
 ---
