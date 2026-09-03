@@ -31,12 +31,12 @@
 ## 📊 GitHub Stats
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-stats.svg" alt="GitHub stats with org contributions and line changes" />
+  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-stats.svg" alt="GitHub stats" />
+  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-langs.svg" alt="Most used languages" />
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-streak.svg" height="165" alt="GitHub streak" />
-  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-activity.svg" height="165" alt="Activity graph" />
+  <img src="https://raw.githubusercontent.com/JP-Schuster/JP-Schuster/main/assets/github-activity.svg" alt="Activity graph" />
 </p>
 
 ---

@@ -2,11 +2,28 @@
 import json
 import os
 import subprocess
-from datetime import datetime, timezone
+from calendar import month_abbr
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 
 USERNAME = os.environ.get("GITHUB_USERNAME", "JP-Schuster")
 TOKEN = os.environ.get("GH_PAT") or os.environ.get("GITHUB_TOKEN")
 ASSETS_DIR = os.environ.get("STATS_ASSETS_DIR", "assets")
+
+LANG_COLORS = {
+    "TypeScript": "#3178C6",
+    "JavaScript": "#F1E05A",
+    "Python": "#3572A5",
+    "Go": "#00ADD8",
+    "HTML": "#E34C26",
+    "CSS": "#563D7C",
+    "Shell": "#89E051",
+    "Dockerfile": "#384D54",
+    "Java": "#B07219",
+    "C": "#555555",
+    "C++": "#F34B7D",
+    "Rust": "#DEA584",
+}
 
 
 def gh(*args):
@@ -28,17 +45,32 @@ def contributor_stats(owner, repo):
         return []
 
 
-def discover_repos():
+def discover_repos_and_languages():
     data = graphql(
-        'query { user(login: "%s") { repositoriesContributedTo(first: 100, includeUserRepositories: true, contributionTypes: [COMMIT, PULL_REQUEST, ISSUE, PULL_REQUEST_REVIEW]) { nodes { nameWithOwner } } repositories(first: 100, ownerAffiliations: OWNER) { nodes { nameWithOwner } } } }'
+        """query {
+          user(login: "%s") {
+            repositoriesContributedTo(first: 100, includeUserRepositories: true, contributionTypes: [COMMIT, PULL_REQUEST, ISSUE, PULL_REQUEST_REVIEW]) {
+              nodes { nameWithOwner languages(first: 10, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } }
+            }
+            repositories(first: 100, ownerAffiliations: OWNER) {
+              nodes { nameWithOwner languages(first: 10, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } } }
+            }
+          }
+        }"""
         % USERNAME
     )
     user = data["data"]["user"]
-    repos = set()
+    repos = {}
+    languages = defaultdict(lambda: {"size": 0, "color": "#8B949E"})
     for block in ("repositoriesContributedTo", "repositories"):
         for node in user[block]["nodes"]:
-            repos.add(node["nameWithOwner"])
-    return sorted(repos)
+            repos[node["nameWithOwner"]] = True
+            for edge in node["languages"]["edges"]:
+                name = edge["node"]["name"]
+                languages[name]["size"] += edge["size"]
+                languages[name]["color"] = edge["node"]["color"] or LANG_COLORS.get(name, "#8B949E")
+    ranked = sorted(languages.items(), key=lambda item: item[1]["size"], reverse=True)
+    return sorted(repos), ranked
 
 
 def aggregate(repos):
@@ -51,20 +83,22 @@ def aggregate(repos):
                 continue
             for week in author.get("weeks", []):
                 ts = week.get("w", 0)
-                year = datetime.fromtimestamp(ts, tz=timezone.utc).year if ts else "unknown"
+                if not ts:
+                    continue
+                week_date = datetime.fromtimestamp(ts, tz=timezone.utc).date()
+                year = str(week_date.year)
                 commits = week.get("c", 0)
                 additions = week.get("a", 0)
                 deletions = week.get("d", 0)
                 totals["commits"] += commits
                 totals["additions"] += additions
                 totals["deletions"] += deletions
-                bucket = totals["by_year"].setdefault(str(year), {"commits": 0, "additions": 0, "deletions": 0})
+                bucket = totals["by_year"].setdefault(year, {"commits": 0, "additions": 0, "deletions": 0})
                 bucket["commits"] += commits
                 bucket["additions"] += additions
                 bucket["deletions"] += deletions
-                if ts:
-                    key = datetime.fromtimestamp(ts, tz=timezone.utc).date().isoformat()
-                    totals["weeks"][key] = totals["weeks"].get(key, 0) + commits
+                key = week_date.isoformat()
+                totals["weeks"][key] = totals["weeks"].get(key, 0) + commits
             break
     return totals
 
@@ -84,31 +118,6 @@ def calendar_stats():
         "totalPullRequestContributions": pr_count,
         "totalIssueContributions": issue_count,
     }
-
-
-def compute_streaks(weeks):
-    if not weeks:
-        return 0, 0, 0
-
-    ordered = sorted(weeks.items())
-    total = sum(weeks.values())
-    longest = 0
-    current_run = 0
-    for _, count in ordered:
-        if count > 0:
-            current_run += 1
-            longest = max(longest, current_run)
-        else:
-            current_run = 0
-
-    current = 0
-    for _, count in reversed(ordered):
-        if count > 0:
-            current += 1
-        else:
-            break
-
-    return current, longest, total
 
 
 def fmt(n):
@@ -132,119 +141,144 @@ def build_stats_svg(totals, calendar, repo_count):
     prs = calendar["totalPullRequestContributions"]
     issues = calendar["totalIssueContributions"]
 
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="520" height="200" viewBox="0 0 520 200" role="img" aria-label="GitHub stats for {USERNAME}">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a1b27"/>
-      <stop offset="100%" stop-color="#24283b"/>
-    </linearGradient>
-  </defs>
-  <rect width="520" height="200" rx="10" fill="url(#bg)"/>
-  <text x="24" y="34" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="18" font-weight="700">{USERNAME} GitHub Stats</text>
-  <text x="24" y="56" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">All-time · pessoal + organizations</text>
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="495" height="195" viewBox="0 0 495 195" role="img">
+  <rect width="495" height="195" rx="10" fill="#1a1b27"/>
+  <text x="24" y="32" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">{USERNAME}'s GitHub Stats</text>
+  <text x="24" y="52" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">pessoal + organizations</text>
 
-  <text x="24" y="92" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Total Commits</text>
-  <text x="24" y="118" fill="#9ece6a" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{commits:,}</text>
+  <text x="24" y="90" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Total Commits</text>
+  <text x="24" y="116" fill="#9ece6a" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{commits:,}</text>
 
-  <text x="170" y="92" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Total PRs</text>
-  <text x="170" y="118" fill="#bb9af7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{prs:,}</text>
+  <text x="170" y="90" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Total PRs</text>
+  <text x="170" y="116" fill="#bb9af7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{prs:,}</text>
 
-  <text x="290" y="92" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Issues</text>
-  <text x="290" y="118" fill="#f7768e" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{issues:,}</text>
+  <text x="290" y="90" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Issues</text>
+  <text x="290" y="116" fill="#f7768e" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{issues:,}</text>
 
-  <text x="390" y="92" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Repos</text>
-  <text x="390" y="118" fill="#e0af68" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{repo_count:,}</text>
+  <text x="390" y="90" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Repos</text>
+  <text x="390" y="116" fill="#e0af68" font-family="Segoe UI, Ubuntu, sans-serif" font-size="24" font-weight="700">{repo_count:,}</text>
 
-  <text x="24" y="156" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Linhas adicionadas</text>
-  <text x="24" y="182" fill="#9ece6a" font-family="Segoe UI, Ubuntu, sans-serif" font-size="20" font-weight="700">+{fmt(additions)}</text>
+  <text x="24" y="154" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Linhas adicionadas</text>
+  <text x="24" y="178" fill="#9ece6a" font-family="Segoe UI, Ubuntu, sans-serif" font-size="20" font-weight="700">+{fmt(additions)}</text>
 
-  <text x="260" y="156" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Linhas removidas</text>
-  <text x="260" y="182" fill="#f7768e" font-family="Segoe UI, Ubuntu, sans-serif" font-size="20" font-weight="700">-{fmt(deletions)}</text>
+  <text x="270" y="154" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">Linhas removidas</text>
+  <text x="270" y="178" fill="#f7768e" font-family="Segoe UI, Ubuntu, sans-serif" font-size="20" font-weight="700">-{fmt(deletions)}</text>
 </svg>
 """
 
 
-def build_streak_svg(current, longest, total):
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="420" height="165" viewBox="0 0 420 165" role="img" aria-label="GitHub streak for {USERNAME}">
-  <rect width="420" height="165" rx="10" fill="#1a1b27"/>
-  <text x="24" y="30" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Contribution Streak</text>
-  <text x="24" y="52" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">Semanas ativas · pessoal + organizations</text>
+def build_langs_svg(ranked):
+    top = ranked[:6]
+    total_size = sum(item[1]["size"] for item in top) or 1
+    parts = [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="195" viewBox="0 0 300 195" role="img">',
+        '<rect width="300" height="195" rx="10" fill="#1a1b27"/>',
+        '<text x="20" y="32" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Most Used Languages</text>',
+        '<text x="20" y="52" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">pessoal + organizations</text>',
+    ]
 
-  <text x="40" y="110" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">Current</text>
-  <text x="40" y="138" fill="#9ece6a" font-family="Segoe UI, Ubuntu, sans-serif" font-size="28" font-weight="700">{current}w</text>
+    x = 20
+    for name, info in top:
+        width = max(8, round(260 * info["size"] / total_size))
+        color = info["color"] or LANG_COLORS.get(name, "#8B949E")
+        parts.append(f'<rect x="{x}" y="66" width="{width}" height="10" fill="{color}"/>')
+        x += width
 
-  <text x="170" y="110" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">Longest</text>
-  <text x="170" y="138" fill="#bb9af7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="28" font-weight="700">{longest}w</text>
+    y = 96
+    for name, info in top:
+        pct = info["size"] / total_size * 100
+        color = info["color"] or LANG_COLORS.get(name, "#8B949E")
+        parts.append(f'<circle cx="26" cy="{y - 4}" r="5" fill="{color}"/>')
+        parts.append(
+            f'<text x="40" y="{y}" fill="#c0caf5" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13">{name}</text>'
+        )
+        parts.append(
+            f'<text x="248" y="{y}" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="13" text-anchor="end">{pct:.1f}%</text>'
+        )
+        y += 16
 
-  <text x="300" y="110" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">Commits</text>
-  <text x="300" y="138" fill="#7dcfff" font-family="Segoe UI, Ubuntu, sans-serif" font-size="28" font-weight="700">{total}</text>
-</svg>
-"""
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
+def week_series(weeks, count=32):
+    today = datetime.now(timezone.utc).date()
+    monday = today - timedelta(days=today.weekday())
+    series = []
+    for i in range(count - 1, -1, -1):
+        start = monday - timedelta(weeks=i)
+        series.append((start, weeks.get(start.isoformat(), 0)))
+    return series
 
 
 def build_activity_svg(weeks, by_year):
-    cols = 26
-    cell = 11
-    gap = 2
-    width = 24 + cols * (cell + gap)
-    height = 150
-    elements = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="Activity graph for {USERNAME}">',
+    series = week_series(weeks, 32)
+    max_count = max((count for _, count in series), default=1) or 1
+    width, height = 800, 195
+    left, right, top, bottom = 36, 24, 58, 38
+    chart_w = width - left - right
+    chart_h = height - top - bottom
+    gap = 4
+    bar_w = max(8, (chart_w / len(series)) - gap)
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">',
         f'<rect width="{width}" height="{height}" rx="10" fill="#1a1b27"/>',
-        f'<text x="24" y="24" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Activity Graph</text>',
-        f'<text x="24" y="40" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">Commits por semana · pessoal + organizations</text>',
+        '<text x="24" y="28" fill="#7aa2f7" font-family="Segoe UI, Ubuntu, sans-serif" font-size="16" font-weight="700">Activity Graph</text>',
+        '<text x="24" y="46" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">commits por semana · pessoal + organizations</text>',
     ]
 
-    ordered = sorted(weeks.items())[-cols * 7 :]
-    max_count = max((count for _, count in ordered), default=1)
-    for idx, (_, count) in enumerate(ordered):
-        col = idx // 7
-        row = idx % 7
-        x = 24 + col * (cell + gap)
-        y = 48 + row * (cell + gap)
-        if count == 0:
-            color = "#1f2335"
-        elif count < max_count * 0.33:
-            color = "#40695B"
-        elif count < max_count * 0.66:
-            color = "#549568"
-        else:
+    last_month = None
+    for idx, (start, count) in enumerate(series):
+        x = left + idx * (bar_w + gap)
+        bar_h = 4 if count == 0 else max(6, round(chart_h * count / max_count))
+        y = top + chart_h - bar_h
+        color = "#3b4261" if count == 0 else "#7aa2f7"
+        if count >= max_count * 0.66:
             color = "#9ece6a"
-        elements.append(f'<rect x="{x}" y="{y}" width="{cell}" height="{cell}" rx="2" fill="{color}"/>')
+        elif count >= max_count * 0.33:
+            color = "#7aa2f7"
+        elif count > 0:
+            color = "#3d59a1"
+        parts.append(f'<rect x="{x:.1f}" y="{y}" width="{bar_w:.1f}" height="{bar_h}" rx="2" fill="{color}"/>')
+        month = start.month
+        if month != last_month:
+            parts.append(
+                f'<text x="{x:.1f}" y="{height - 14}" fill="#565f89" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">{month_abbr[month]}</text>'
+            )
+            last_month = month
 
-    y_text = height - 12
-    x_text = 24
+    legend_x = 520
     for year, stats in sorted(by_year.items()):
-        label = f"{year}: {stats['commits']} commits"
-        elements.append(
-            f'<text x="{x_text}" y="{y_text}" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="11">{label}</text>'
+        parts.append(
+            f'<text x="{legend_x}" y="28" fill="#a9b1d6" font-family="Segoe UI, Ubuntu, sans-serif" font-size="12">{year}: {stats["commits"]} commits</text>'
         )
-        x_text += 130
+        legend_x += 140
 
-    elements.append("</svg>")
-    return "\n".join(elements)
+    parts.append("</svg>")
+    return "\n".join(parts)
 
 
 def main():
-    repos = discover_repos()
+    repos, ranked = discover_repos_and_languages()
     totals = aggregate(repos)
     calendar = calendar_stats()
-    current, longest, total = compute_streaks(totals["weeks"])
 
     write(f"{ASSETS_DIR}/github-stats.svg", build_stats_svg(totals, calendar, len(repos)))
-    write(f"{ASSETS_DIR}/github-streak.svg", build_streak_svg(current, longest, total))
+    write(f"{ASSETS_DIR}/github-langs.svg", build_langs_svg(ranked))
     write(f"{ASSETS_DIR}/github-activity.svg", build_activity_svg(totals["weeks"], totals["by_year"]))
 
     print(
         json.dumps(
             {
                 "repos": len(repos),
-                "totals": totals,
-                "calendar": {
-                    "prs": calendar["totalPullRequestContributions"],
-                    "issues": calendar["totalIssueContributions"],
-                    "streak": {"current_weeks": current, "longest_weeks": longest, "commits": total},
-                },
+                "commits": totals["commits"],
+                "additions": totals["additions"],
+                "deletions": totals["deletions"],
+                "prs": calendar["totalPullRequestContributions"],
+                "issues": calendar["totalIssueContributions"],
+                "languages": [(name, info["size"]) for name, info in ranked[:8]],
+                "by_year": totals["by_year"],
             },
             indent=2,
         )
